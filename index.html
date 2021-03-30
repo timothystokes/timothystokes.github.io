@@ -193,11 +193,11 @@
 
                 if (steer < 0) {
                     currentSpeed = modes[mode][0] - modes[mode][1]
-                    ship.d -= (currentSteering / 70)
+                    ship.d -= (currentSteering / 100)
                     ticksSteering += currentSteering
                 } else if (steer > 0) {
                     currentSpeed = modes[mode][0] - modes[mode][1]
-                    ship.d += (currentSteering / 70)
+                    ship.d += (currentSteering / 100)
                     ticksSteering += currentSteering
                 } else {
                     currentSpeed = modes[mode][0]
