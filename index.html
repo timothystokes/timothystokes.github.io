@@ -36,10 +36,10 @@
             }
         </style>
     </head>
-    <body onKeyDown="move(event)">
+    <body onKeyDown="move(event)" onKeyUp="forward(event)">
         <div id="scores">
             <div id="stats">
-                Directional Power 25% - 50% - 75%<br/>
+                Resources you are prepared to spend on alignment.. 25% - 50% - 75%<br/>
                 <input type="range" id="points" name="points" min="0" max="2" value="0" onclick="mode = this.value"><br/>&nbsp;<br/>
                 <button onClick="start()">START</button><br/>
                 Refresh page to reset
@@ -66,6 +66,8 @@
             let currentSpeed = modes[mode][0]
             let currentSteering = modes[mode][1]
             let lastAction = (new Date()).getMilliseconds()
+            let left = false
+            let right = false
 
             const canvas = document.getElementById('space')
             const ctx = canvas.getContext('2d')
@@ -138,11 +140,11 @@
                 let flame = currentSpeed * 20
                 ctx.drawImage(ship.flames[f], -(50+flame), -25, 5+flame, 50)
                 if (steer < 0) {
-                    ctx.rotate(steer*1.6)
+                    ctx.rotate(-1.6)
                     let sideflame = currentSteering * 20
                     ctx.drawImage(ship.flames[f], -(32+sideflame), -15, 15+sideflame, 60)
                 } else if (steer > 0) {
-                    ctx.rotate(steer*1.6)
+                    ctx.rotate(1.6)
                     let sideflame = currentSteering * 20
                     ctx.drawImage(ship.flames[f], -(32+sideflame), -45, 15+sideflame, 60)
                 }
@@ -165,9 +167,14 @@
 
                 ticksForward += currentSpeed
 
-                if (steer != 0) {
+                if (steer < 0) {
+                    currentSpeed = modes[mode][0] - modes[mode][1]
+                    ship.d -= (currentSteering / 70)
                     ticksSteering += currentSteering
-                    steer = 0
+                } else if (steer > 0) {
+                    currentSpeed = modes[mode][0] - modes[mode][1]
+                    ship.d += (currentSteering / 70)
+                    ticksSteering += currentSteering
                 } else {
                     currentSpeed = modes[mode][0]
                     currentSteering = modes[mode][1]
@@ -191,14 +198,34 @@
             }
 
             function move(event) {
-                if (event.keyCode == 37) {
-                    currentSpeed = modes[mode][0] - modes[mode][1]
-                    ship.d -= (currentSteering / 60)
-                    steer = -1
-                } else if (event.keyCode == 39) {
-                    currentSpeed = modes[mode][0] - modes[mode][1]
-                    ship.d += (currentSteering / 60)
-                    steer = 1
+                if (!event.repeat) {
+                    if (event.keyCode == 37) {
+                        steer = -1
+                        left = true
+                    } else if (event.keyCode == 39) {
+                        steer = 1
+                        right = true
+                    }
+                }
+            }
+
+            function forward(event) {
+                if (!event.repeat) {
+                    if (event.keyCode == 37) {
+                        left = false
+                        if (right) {
+                            steer = 1
+                        } else {
+                            steer = 0
+                        }
+                    } else if (event.keyCode == 39) {
+                        right = false
+                        if (left) {
+                            steer = -1
+                        } else {
+                            steer = 0
+                        }
+                    }
                 }
             }
 
