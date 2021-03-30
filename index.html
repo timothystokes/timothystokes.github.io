@@ -19,6 +19,7 @@
                 color: #abcdef;
                 font-family: Arial, Helvetica, sans-serif;
                 width: 100%;
+                user-select: none;                
             }
             #scores h1 {
                 margin: 20px 0 0 20px;
@@ -32,6 +33,7 @@
                 padding: 20px;
                 float: right;
                 text-align: right;
+                user-select: none;
             }
             button {
                 font-size: 44px;
@@ -58,7 +60,7 @@
             <p>By Tim Stokes</p>
         </div>
         <canvas id="space"></canvas>
-        <div id="mobileControls" style="display: none;"><button onmouseup="forward({keyCode: 37})" onmousedown="move({keyCode: 37})">LEFT</button>&nbsp;&nbsp;<button onmouseup="forward({keyCode: 39})" onmousedown="move({keyCode: 39})">RIGHT</button></div>
+        <div id="mobileControls" style="display: none;"><button ontouchend="forward({keyCode: 37})" ontouchstart="move({keyCode: 37})">&lt;</button>&nbsp;&nbsp;<button ontouchend="forward({keyCode: 39})" ontouchstart="move({keyCode: 39})">&gt;</button></div>
         <script>
 
             const modes = [
