@@ -1,0 +1,207 @@
+<html>
+    <head>
+        <style>
+            body {
+                margin: 0;
+                background: url(sky.jpg);
+                background-repeat: no-repeat;
+                background-size: 100%;
+            }
+            canvas {
+                width: 100%;
+                height: 100%;
+            }
+            #scores {
+                position: absolute;
+                z-index: 999;
+                color: #abcdef;
+                font-family: Arial, Helvetica, sans-serif;
+                width: 100%;
+            }
+            #scores h1 {
+                margin: 20px 0 0 20px;
+                padding: 0;
+            }
+            #scores p {
+                margin: 0 0 0 20px;
+                padding: 0;
+            }
+            #stats {
+                padding: 20px;
+                float: right;
+                text-align: right;
+            }
+            button {
+                font-size: 44px;
+            }
+        </style>
+    </head>
+    <body onKeyDown="move(event)">
+        <div id="scores">
+            <div id="stats">
+                Directional Power 25% - 50% - 75%<br/>
+                <input type="range" id="points" name="points" min="0" max="2" value="0" onclick="mode = this.value"><br/>&nbsp;<br/>
+                <button onClick="start()">START</button><br/>
+                Refresh page to reset
+            </form>
+            </div>
+            <h1>Game of Agility</h1>
+            <p>By Tim Stokes</p>
+        </div>
+        <canvas id="space"></canvas>
+        <script>
+
+            const modes = [
+                [4, 1],
+                [4, 2],
+                [4, 3]
+            ]
+
+            let mode = 0
+            let steer = 0
+            let times = []
+            let legStart = 0
+            let ticksForward = 0
+            let ticksSteering = 0
+            let currentSpeed = modes[mode][0]
+            let currentSteering = modes[mode][1]
+            let lastAction = (new Date()).getMilliseconds()
+
+            const canvas = document.getElementById('space')
+            const ctx = canvas.getContext('2d')
+            const canvasWidth = document.body.clientWidth;
+            const canvasHeight = document.body.clientHeight;
+
+            if (window.devicePixelRatio > 1) {
+
+                canvas.width = canvasWidth * window.devicePixelRatio;
+                canvas.height = canvasHeight * window.devicePixelRatio;
+                canvas.style.width = `${canvasWidth}px`;
+                canvas.style.height = `${canvasHeight}px`;
+
+                ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            }
+
+            const star = new Image();
+
+            const stars = {
+                img: new Image(),
+                old: new Image(),
+                items: []
+            }
+
+            const ship = {
+                img: new Image(),
+                flames: [
+                    new Image(),
+                    new Image(),
+                    new Image(),
+                    new Image()
+                ],
+                x: 500,
+                y: 500,
+                d: -0.3
+            }
+
+            stars.img.src = 'star.png'
+            stars.old.src = 'oldstar.png'
+            ship.img.src = 'ship.png'
+            ship.flames[0].src = 'flame1.png'
+            ship.flames[1].src = 'flame2.png'
+            ship.flames[2].src = 'flame3.png'
+            ship.flames[3].src = 'flame4.png'
+
+            function newStar() {
+                stars.items.push({x: Math.random() * (canvasWidth - 100), y: Math.random() * (canvasHeight - 84)})
+            }
+
+            newStar();
+            const stats = document.getElementById("stats")
+
+            function draw() {
+            
+                ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+
+                stars.items.forEach((star, i) => {
+                    if (i < stars.items.length - 1) {
+                        ctx.drawImage(stars.old, star.x, star.y, 100, 84)
+                    } else {
+                        ctx.drawImage(stars.img, star.x, star.y, 100, 84)
+                    }
+                })
+
+                ctx.save();
+                ctx.translate(ship.x+50, ship.y+50)
+                ctx.rotate(ship.d)
+                ctx.drawImage(ship.img, -50, -50, 100, 100)
+                let f = Math.floor(Math.random() * 3)
+                let flame = currentSpeed * 20
+                ctx.drawImage(ship.flames[f], -(50+flame), -25, 5+flame, 50)
+                if (steer < 0) {
+                    ctx.rotate(steer*1.6)
+                    let sideflame = currentSteering * 20
+                    ctx.drawImage(ship.flames[f], -(32+sideflame), -15, 15+sideflame, 60)
+                } else if (steer > 0) {
+                    ctx.rotate(steer*1.6)
+                    let sideflame = currentSteering * 20
+                    ctx.drawImage(ship.flames[f], -(32+sideflame), -45, 15+sideflame, 60)
+                }
+
+                ctx.restore()
+
+                ship.x += currentSpeed * Math.cos(ship.d)
+                ship.y += currentSpeed * Math.sin(ship.d)
+
+                var latestStar = stars.items[stars.items.length - 1]
+                var dX = (latestStar.x + 42) - (ship.x + 50)
+                var dY = (latestStar.y + 50) - (ship.y + 50)
+                var distance = Math.sqrt(dX * dX + dY * dY)
+                if (distance < 50) {
+                    let now = (new Date()).getTime()
+                    times.push(now - legStart)
+                    newStar()
+                    legStart = now
+                }
+
+                ticksForward += currentSpeed
+
+                if (steer != 0) {
+                    ticksSteering += currentSteering
+                    steer = 0
+                } else {
+                    currentSpeed = modes[mode][0]
+                    currentSteering = modes[mode][1]
+                }
+
+                let avgLegTimes = times.reduce((a, b) => a + b, 0) / times.length
+                if (times.length == 0) {
+                    avgLegTimes = 0
+                }
+                stats.innerHTML = `Directional Power ${(modes[mode][1]/modes[mode][0])*100}%<br>
+                Average seconds to target: ${(avgLegTimes/1000).toFixed(2)}<br/>
+                Resources spent on Alignment: ${((ticksSteering/ticksForward)*100).toFixed(0)}%`
+
+                window.requestAnimationFrame(draw)
+
+            }
+
+            function start() {
+                legStart = (new Date()).getTime()
+                window.requestAnimationFrame(draw)
+            }
+
+            function move(event) {
+                if (event.keyCode == 37) {
+                    currentSpeed = modes[mode][0] - modes[mode][1]
+                    ship.d -= (currentSteering / 60)
+                    steer = -1
+                } else if (event.keyCode == 39) {
+                    currentSpeed = modes[mode][0] - modes[mode][1]
+                    ship.d += (currentSteering / 60)
+                    steer = 1
+                }
+            }
+
+        </script>
+    </body>
+</html>
