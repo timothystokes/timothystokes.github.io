@@ -33,6 +33,10 @@
             button {
                 font-size: 44px;
             }
+            #mobileControls {
+                bottom: 0;
+                position: absolute;
+            }
         </style>
     </head>
     <body onKeyDown="move(event)" onKeyUp="forward(event)">
@@ -48,6 +52,7 @@
             <p>By Tim Stokes</p>
         </div>
         <canvas id="space"></canvas>
+        <div id="mobileControls" style="display: none;"><button onmouseup="forward({keyCode: 37})" onmousedown="move({keyCode: 37})">LEFT</button>&nbsp;&nbsp;<button onmouseup="forward({keyCode: 39})" onmousedown="move({keyCode: 39})">RIGHT</button></div>
         <script>
 
             const modes = [
@@ -114,6 +119,10 @@
 
             function newStar() {
                 stars.items.push({x: Math.random() * (canvasWidth - 100), y: Math.random() * (canvasHeight - 84)})
+            }
+
+            if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
+                document.getElementById("mobileControls").style.display="block"
             }
 
             newStar();
